@@ -8,17 +8,17 @@ const saveUsers = (users) => localStorage.setItem('deltaUsers', JSON.stringify(u
 const setCurrentUser = (user) => localStorage.setItem('deltaCurrentUser', JSON.stringify(user));
 const getCurrentUser = () => JSON.parse(localStorage.getItem('deltaCurrentUser') || 'null');
 
-// ===== Secret Codes =====
-const DOCTOR_CODES = [
-  'dr0000', 'dr0001', 'dr0002', 'dr0003', 'dr0004', 'dr0005',
-  'dr0006', 'dr0007', 'dr0008', 'dr0009', 'dr0010'
-];
+// ===== Doctor Code Validation =====
+// يقبل: dr + أي 4 أرقام (dr0000, dr0001, dr1234, dr9999...)
+function isValidDoctorCode(code) {
+  return /^dr\d{4}$/i.test(code);
+}
 
+// ===== Staff Codes =====
 const STAFF_CODES = ['st0000', 'st0001', 'st0002', 'st0003', 'st0004', 'st0005'];
 
 // ===== Tab Switching =====
 function switchTab(tab) {
-  console.log('🔄 switchTab:', tab);
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
   document.getElementById('errorMsg').textContent = '';
@@ -36,10 +36,8 @@ function switchTab(tab) {
 function toggleRoleFields() {
   const roleInput = document.querySelector('input[name="role"]:checked');
   if (!roleInput) return;
-  
-  const role = roleInput.value;
-  console.log('👤 Role changed to:', role);
 
+  const role = roleInput.value;
   const levelSelect = document.getElementById('regLevel');
   const doctorCodeBox = document.getElementById('doctorCodeBox');
   const staffCodeBox = document.getElementById('staffCodeBox');
@@ -48,7 +46,7 @@ function toggleRoleFields() {
   levelSelect.style.display = 'none';
   doctorCodeBox.style.display = 'none';
   staffCodeBox.style.display = 'none';
-  
+
   // تنظيف القيم
   document.getElementById('regDoctorCode').value = '';
   document.getElementById('regStaffCode').value = '';
@@ -63,7 +61,7 @@ function toggleRoleFields() {
   }
 }
 
-// ===== Password Strength =====
+// ===== Password Strength (Student) =====
 function isStrongPassword(pwd) {
   return pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /[0-9]/.test(pwd);
 }
@@ -71,7 +69,6 @@ function isStrongPassword(pwd) {
 // ===== Register =====
 function handleRegister(e) {
   e.preventDefault();
-  console.log('📝 handleRegister called');
 
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim().toLowerCase();
@@ -82,21 +79,19 @@ function handleRegister(e) {
   const staffCode = document.getElementById('regStaffCode').value.trim().toLowerCase();
   const errorMsg = document.getElementById('errorMsg');
 
-  console.log('📋 البيانات:', { name, email, role, level, doctorCode, staffCode });
-
   errorMsg.style.color = '#dc2626';
   errorMsg.textContent = '';
 
   const users = getUsers();
 
-  // === تحقق الطالب ===
+  // ===== تحقق الطالب =====
   if (role === 'student') {
     if (!isStrongPassword(password)) {
       errorMsg.textContent = '❌ كلمة المرور للطالب: 8 خانات على الأقل + حرف + رقم';
       return;
     }
-  } 
-  // === تحقق الدكتور ===
+  }
+  // ===== تحقق الدكتور =====
   else if (role === 'doctor') {
     if (password.length < 6) {
       errorMsg.textContent = '❌ كلمة المرور للدكتور: 6 خانات على الأقل';
@@ -106,16 +101,16 @@ function handleRegister(e) {
       errorMsg.textContent = '❌ أدخل كود الدكتور';
       return;
     }
-    if (!DOCTOR_CODES.includes(doctorCode)) {
-      errorMsg.textContent = '❌ كود الدكتور غير صحيح. الأكواد المتاحة: dr0000 - dr0010';
+    if (!isValidDoctorCode(doctorCode)) {
+      errorMsg.textContent = '❌ صيغة كود الدكتور غير صحيحة. لازم dr + 4 أرقام (مثال: dr1234)';
       return;
     }
     if (users.find(u => u.doctorCode === doctorCode)) {
       errorMsg.textContent = '❌ هذا الكود مستخدم بالفعل من دكتور آخر';
       return;
     }
-  } 
-  // === تحقق الموظف ===
+  }
+  // ===== تحقق الموظف =====
   else if (role === 'staff') {
     if (password.length < 6) {
       errorMsg.textContent = '❌ كلمة المرور للموظف: 6 خانات على الأقل';
@@ -135,13 +130,13 @@ function handleRegister(e) {
     }
   }
 
-  // === تحقق البريد ===
+  // ===== تحقق البريد =====
   if (users.find(u => u.email === email)) {
     errorMsg.textContent = '❌ البريد الإلكتروني مسجل بالفعل';
     return;
   }
 
-  // === إنشاء المستخدم ===
+  // ===== إنشاء المستخدم =====
   const newUser = {
     id: Date.now(),
     name,
@@ -153,8 +148,6 @@ function handleRegister(e) {
     staffCode: role === 'staff' ? staffCode : null,
     createdAt: new Date().toISOString()
   };
-
-  console.log('✅ مستخدم جديد:', newUser);
 
   users.push(newUser);
   saveUsers(users);
@@ -169,8 +162,6 @@ function handleRegister(e) {
 // ===== Login =====
 function handleLogin(e) {
   e.preventDefault();
-  console.log('🔐 handleLogin called');
-
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
   const errorMsg = document.getElementById('errorMsg');
@@ -179,16 +170,12 @@ function handleLogin(e) {
   errorMsg.textContent = '';
 
   const users = getUsers();
-  console.log('👥 عدد المستخدمين:', users.length);
-
   const user = users.find(u => u.email === email && u.password === password);
 
   if (!user) {
     errorMsg.textContent = '❌ البريد أو كلمة المرور غير صحيحة';
     return;
   }
-
-  console.log('✅ تم تسجيل الدخول:', user);
 
   setCurrentUser(user);
   errorMsg.style.color = '#16a34a';
@@ -199,7 +186,6 @@ function handleLogin(e) {
 
 // ===== Redirect =====
 function redirectByRole(user) {
-  console.log('🚀 redirectByRole:', user.role);
   if (user.role === 'doctor') {
     window.location.href = 'doctor.html';
   } else if (user.role === 'staff') {
@@ -231,14 +217,12 @@ function logout() {
 
 // ===== Init =====
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('🎯 DOMContentLoaded');
-  
-  // تأكد إن الـ radio listeners موجودة
+  // ربط الـ radio buttons بدالة toggle
   document.querySelectorAll('input[name="role"]').forEach(radio => {
     radio.addEventListener('change', toggleRoleFields);
   });
 
-  // Auto-redirect لو مسجل بالفعل
+  // لو مسجل بالفعل، حوّله للوحة بتاعته
   const user = getCurrentUser();
   const path = window.location.pathname;
   if (user && (path.endsWith('index.html') || path === '/' || path.endsWith('/delta-institute/'))) {
