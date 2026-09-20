@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>معهد الدلتا العالي - تسجيل الدخول</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="main-header">
+    <div class="header-content">
+      <img src="assets/logo.png" alt="شعار المعهد" class="header-logo">
+      <div class="header-title">
+        <h1>معهد الدلتا العالي</h1>
+        <p>لنظم المعلومات الإدارية والمحاسبية - المنصورة</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="logo-section">
+        <img src="assets/logo.png" alt="شعار المعهد" class="logo">
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('login')">تسجيل الدخول</button>
+        <button class="tab" onclick="switchTab('register')">إنشاء حساب</button>
+      </div>
+
+      <form id="loginForm" class="form active" onsubmit="handleLogin(event)">
+        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" required>
+        <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
+        <button type="submit" class="btn-primary">دخول</button>
+      </form>
+
+      <form id="registerForm" class="form" onsubmit="handleRegister(event)">
+        <input type="text" id="regName" placeholder="الاسم بالكامل" required>
+        <input type="email" id="regEmail" placeholder="البريد الإلكتروني" required>
+        <input type="password" id="regPassword" placeholder="كلمة المرور" required>
+
+        <div class="role-select">
+          <label class="role-option">
+            <input type="radio" name="role" value="student" checked onchange="toggleRoleFields()">
+            <span>🎓 طالب</span>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="doctor" onchange="toggleRoleFields()">
+            <span>👨‍🏫 دكتور</span>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="staff" onchange="toggleRoleFields()">
+            <span>👨‍💼 موظف</span>
+          </label>
+        </div>
+
+        <div id="doctorCodeBox" style="display: none;">
+          <input type="text" id="regDoctorCode" placeholder="كود الدكتور (مثال: dr0000)">
+          <small class="code-hint">⚠️ الكود يُصرف من الإدارة</small>
+        </div>
+
+        <div id="staffCodeBox" style="display: none;">
+          <input type="text" id="regStaffCode" placeholder="كود الموظف (مثال: st0000)">
+          <small class="code-hint">⚠️ الكود يُصرف من الإدارة</small>
+        </div>
+
+        <select id="regLevel">
+          <option value="1">الفرقة الأولى</option>
+          <option value="2">الفرقة الثانية</option>
+          <option value="3-sys">الفرقة الثالثة (نظم)</option>
+          <option value="3-acc">الفرقة الثالثة (محاسبة)</option>
+          <option value="4-sys">الفرقة الرابعة (نظم)</option>
+          <option value="4-acc">الفرقة الرابعة (محاسبة)</option>
+        </select>
+
+        <button type="submit" class="btn-primary">تسجيل</button>
+      </form>
+
+      <p id="errorMsg" class="error"></p>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

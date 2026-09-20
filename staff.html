@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الموظف - معهد الدلتا</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="main-header">
+    <div class="header-content">
+      <img src="assets/logo.png" alt="شعار المعهد" class="header-logo">
+      <div class="header-title">
+        <h1>معهد الدلتا العالي</h1>
+        <p>لنظم المعلومات الإدارية والمحاسبية - المنصورة</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <div class="page-title">
+      <span>👨‍💼 لوحة تحكم الموظف</span>
+      <span class="user-welcome" id="userName"></span>
+      <button class="btn-logout" onclick="logout()">تسجيل خروج</button>
+    </div>
+
+    <div class="tabs" style="max-width: 500px;">
+      <button class="tab active" onclick="switchSection('announcements', this)">📢 الإعلانات</button>
+      <button class="tab" onclick="switchSection('union', this)">🎉 اتحاد الطلاب</button>
+    </div>
+
+    <div id="announcementsSection">
+      <div class="form-box">
+        <h4>📢 انشر إعلان جديد</h4>
+        <div class="form-row" style="flex-direction: column;">
+          <input type="text" id="annTitle" placeholder="عنوان الإعلان">
+          <textarea id="annContent" placeholder="محتوى الإعلان..."></textarea>
+        </div>
+        <div class="form-row" style="margin-top: 10px;">
+          <button class="btn-sm" onclick="attachAnnFile()">📎 إرفاق ملف/صورة</button>
+          <span id="annAttachStatus" style="color: var(--blue); font-size: 13px; align-self: center;"></span>
+          <button class="btn-primary" onclick="publishAnnouncement()" style="margin-right: auto; max-width: 180px;">🚀 نشر</button>
+        </div>
+      </div>
+      <div id="announcementsList"></div>
+    </div>
+
+    <div id="unionSection" style="display: none;">
+      <div class="form-box">
+        <h4>🎉 انشر نشاط اتحاد الطلاب</h4>
+        <div class="form-row" style="flex-direction: column;">
+          <input type="text" id="unionTitle" placeholder="عنوان النشاط">
+          <textarea id="unionContent" placeholder="تفاصيل النشاط..."></textarea>
+        </div>
+        <div class="form-row" style="margin-top: 10px;">
+          <button class="btn-sm" onclick="attachUnionFile()">📎 إرفاق ملف/صورة</button>
+          <span id="unionAttachStatus" style="color: var(--blue); font-size: 13px; align-self: center;"></span>
+          <button class="btn-primary" onclick="publishUnion()" style="margin-right: auto; max-width: 180px;">🚀 نشر</button>
+        </div>
+      </div>
+      <div id="unionList"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-link-box">
+        <h4>1- إدارة الدعم الأكاديمي معهد الدلتا العالي نظم للحاسبات بالمنصورة</h4>
+        <a href="https://www.facebook.com/share/g/1MKBprx4Xu/" target="_blank" class="footer-link-btn">اضغط هنا</a>
+      </div>
+      <div class="footer-link-box">
+        <h4>2- شئون الطلاب الدلتا نظم المعلومات الإدارية والمحاسبية</h4>
+        <a href="https://www.facebook.com/share/g/1CELDTqVbf/" target="_blank" class="footer-link-btn">اضغط هنا</a>
+      </div>
+    </div>
+    <p class="footer-copy">© 2025 معهد الدلتا العالي - جميع الحقوق محفوظة</p>
+  </footer>
+
+  <script src="js/auth.js"></script>
+  <script src="js/driveAPI.js"></script>
+  <script src="js/staff.js"></script>
+</body>
+</html>
