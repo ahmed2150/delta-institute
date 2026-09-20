@@ -3,15 +3,33 @@
 // ============================================
 
 // ===== Storage =====
-const getUsers = () => JSON.parse(localStorage.getItem('deltaUsers') || '[]');
-const saveUsers = (users) => localStorage.setItem('deltaUsers', JSON.stringify(users));
-const setCurrentUser = (user) => localStorage.setItem('deltaCurrentUser', JSON.stringify(user));
-const getCurrentUser = () => JSON.parse(localStorage.getItem('deltaCurrentUser') || 'null');
+function getUsers() {
+  return JSON.parse(localStorage.getItem('deltaUsers') || '[]');
+}
 
-// ===== Doctor Code Validation =====
-// يقبل: dr + أي 4 أرقام (dr0000, dr0001, dr1234, dr9999...)
+function saveUsers(users) {
+  localStorage.setItem('deltaUsers', JSON.stringify(users));
+}
+
+function setCurrentUser(user) {
+  localStorage.setItem('deltaCurrentUser', JSON.stringify(user));
+}
+
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('deltaCurrentUser') || 'null');
+}
+
+// ===== Doctor Code Check =====
+// يقبل: dr + 4 أرقام (dr0000, dr2005, dr1234...)
 function isValidDoctorCode(code) {
-  return /^dr\d{4}$/i.test(code);
+  if (!code) return false;
+  code = code.trim().toLowerCase();
+  // لازم يبدأ بـ dr وبعده 4 أرقام بالظبط
+  if (code.length !== 6) return false;
+  if (code.substring(0, 2) !== 'dr') return false;
+  const numbers = code.substring(2);
+  if (!/^\d{4}$/.test(numbers)) return false;
+  return true;
 }
 
 // ===== Staff Codes =====
@@ -42,14 +60,10 @@ function toggleRoleFields() {
   const doctorCodeBox = document.getElementById('doctorCodeBox');
   const staffCodeBox = document.getElementById('staffCodeBox');
 
-  // إخفاء الكل أولاً
+  // إخفاء الكل
   levelSelect.style.display = 'none';
   doctorCodeBox.style.display = 'none';
   staffCodeBox.style.display = 'none';
-
-  // تنظيف القيم
-  document.getElementById('regDoctorCode').value = '';
-  document.getElementById('regStaffCode').value = '';
 
   // إظهار حسب الدور
   if (role === 'student') {
@@ -61,7 +75,7 @@ function toggleRoleFields() {
   }
 }
 
-// ===== Password Strength (Student) =====
+// ===== Password Strength =====
 function isStrongPassword(pwd) {
   return pwd.length >= 8 && /[A-Za-z]/.test(pwd) && /[0-9]/.test(pwd);
 }
@@ -69,81 +83,107 @@ function isStrongPassword(pwd) {
 // ===== Register =====
 function handleRegister(e) {
   e.preventDefault();
-
-  const name = document.getElementById('regName').value.trim();
-  const email = document.getElementById('regEmail').value.trim().toLowerCase();
-  const password = document.getElementById('regPassword').value;
-  const role = document.querySelector('input[name="role"]:checked').value;
-  const level = role === 'student' ? document.getElementById('regLevel').value : null;
-  const doctorCode = document.getElementById('regDoctorCode').value.trim().toLowerCase();
-  const staffCode = document.getElementById('regStaffCode').value.trim().toLowerCase();
+  
   const errorMsg = document.getElementById('errorMsg');
-
   errorMsg.style.color = '#dc2626';
   errorMsg.textContent = '';
 
+  // جلب القيم
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const password = document.getElementById('regPassword').value;
+  const roleInput = document.querySelector('input[name="role"]:checked');
+  
+  if (!roleInput) {
+    errorMsg.textContent = '❌ اختر نوع الحساب';
+    return;
+  }
+  
+  const role = roleInput.value;
+  const level = role === 'student' ? document.getElementById('regLevel').value : null;
+  const doctorCode = document.getElementById('regDoctorCode').value.trim().toLowerCase();
+  const staffCode = document.getElementById('regStaffCode').value.trim().toLowerCase();
+
+  // تحقق أساسي
+  if (!name || !email || !password) {
+    errorMsg.textContent = '❌ املأ كل الحقول';
+    return;
+  }
+
   const users = getUsers();
 
-  // ===== تحقق الطالب =====
+  // ====== تحقق الطالب ======
   if (role === 'student') {
     if (!isStrongPassword(password)) {
-      errorMsg.textContent = '❌ كلمة المرور للطالب: 8 خانات على الأقل + حرف + رقم';
+      errorMsg.textContent = '❌ كلمة المرور: 8 خانات على الأقل + حرف + رقم';
       return;
     }
   }
-  // ===== تحقق الدكتور =====
+  
+  // ====== تحقق الدكتور ======
   else if (role === 'doctor') {
     if (password.length < 6) {
-      errorMsg.textContent = '❌ كلمة المرور للدكتور: 6 خانات على الأقل';
+      errorMsg.textContent = '❌ كلمة المرور: 6 خانات على الأقل';
       return;
     }
+    
     if (!doctorCode) {
       errorMsg.textContent = '❌ أدخل كود الدكتور';
       return;
     }
+    
+    // ✅ التحقق من صيغة الكود
     if (!isValidDoctorCode(doctorCode)) {
-      errorMsg.textContent = '❌ صيغة كود الدكتور غير صحيحة. لازم dr + 4 أرقام (مثال: dr1234)';
+      errorMsg.textContent = '❌ كود الدكتور غير صحيح. لازم dr + 4 أرقام (مثال: dr2005)';
       return;
     }
-    if (users.find(u => u.doctorCode === doctorCode)) {
-      errorMsg.textContent = '❌ هذا الكود مستخدم بالفعل من دكتور آخر';
+    
+    // التحقق إن الكود مش مستخدم
+    const codeUsed = users.find(u => u.doctorCode === doctorCode);
+    if (codeUsed) {
+      errorMsg.textContent = '❌ هذا الكود مستخدم بالفعل';
       return;
     }
   }
-  // ===== تحقق الموظف =====
+  
+  // ====== تحقق الموظف ======
   else if (role === 'staff') {
     if (password.length < 6) {
-      errorMsg.textContent = '❌ كلمة المرور للموظف: 6 خانات على الأقل';
+      errorMsg.textContent = '❌ كلمة المرور: 6 خانات على الأقل';
       return;
     }
+    
     if (!staffCode) {
       errorMsg.textContent = '❌ أدخل كود الموظف';
       return;
     }
-    if (!STAFF_CODES.includes(staffCode)) {
+    
+    if (STAFF_CODES.indexOf(staffCode) === -1) {
       errorMsg.textContent = '❌ كود الموظف غير صحيح';
       return;
     }
-    if (users.find(u => u.staffCode === staffCode)) {
+    
+    const codeUsed = users.find(u => u.staffCode === staffCode);
+    if (codeUsed) {
       errorMsg.textContent = '❌ هذا الكود مستخدم بالفعل';
       return;
     }
   }
 
-  // ===== تحقق البريد =====
+  // ====== تحقق البريد ======
   if (users.find(u => u.email === email)) {
     errorMsg.textContent = '❌ البريد الإلكتروني مسجل بالفعل';
     return;
   }
 
-  // ===== إنشاء المستخدم =====
+  // ====== إنشاء المستخدم ======
   const newUser = {
     id: Date.now(),
-    name,
-    email,
-    password,
-    role,
-    level,
+    name: name,
+    email: email,
+    password: password,
+    role: role,
+    level: level,
     doctorCode: role === 'doctor' ? doctorCode : null,
     staffCode: role === 'staff' ? staffCode : null,
     createdAt: new Date().toISOString()
@@ -156,12 +196,15 @@ function handleRegister(e) {
   errorMsg.style.color = '#16a34a';
   errorMsg.textContent = '✅ تم إنشاء الحساب! جاري التحويل...';
 
-  setTimeout(() => redirectByRole(newUser), 800);
+  setTimeout(function() {
+    redirectByRole(newUser);
+  }, 800);
 }
 
 // ===== Login =====
 function handleLogin(e) {
   e.preventDefault();
+  
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
   const errorMsg = document.getElementById('errorMsg');
@@ -181,7 +224,9 @@ function handleLogin(e) {
   errorMsg.style.color = '#16a34a';
   errorMsg.textContent = '✅ جاري تسجيل الدخول...';
 
-  setTimeout(() => redirectByRole(user), 500);
+  setTimeout(function() {
+    redirectByRole(user);
+  }, 500);
 }
 
 // ===== Redirect =====
@@ -216,13 +261,13 @@ function logout() {
 }
 
 // ===== Init =====
-document.addEventListener('DOMContentLoaded', () => {
-  // ربط الـ radio buttons بدالة toggle
-  document.querySelectorAll('input[name="role"]').forEach(radio => {
+document.addEventListener('DOMContentLoaded', function() {
+  // ربط الأزرار
+  document.querySelectorAll('input[name="role"]').forEach(function(radio) {
     radio.addEventListener('change', toggleRoleFields);
   });
 
-  // لو مسجل بالفعل، حوّله للوحة بتاعته
+  // لو مسجل بالفعل
   const user = getCurrentUser();
   const path = window.location.pathname;
   if (user && (path.endsWith('index.html') || path === '/' || path.endsWith('/delta-institute/'))) {
